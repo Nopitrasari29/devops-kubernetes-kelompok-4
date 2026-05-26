@@ -129,3 +129,42 @@ kubectl port-forward service/taskflow-api 30081:80 -n taskflow-prod
 ```
 Akses aplikasi melalui browser atau `curl` di alamat:
 `http://localhost:30081`
+
+---
+ 
+## 🧪 Dokumentasi Pengujian Insiden
+ 
+Berikut adalah hasil pengujian ketiga insiden produksi utama yang dibuktikan dengan Kubernetes:
+ 
+### Insiden 1 — Self-Healing (Tugas 3)
+ 
+> 📄 Dokumentasi lengkap: [docs/insiden-1-selfhealing.md](docs/insiden-1-selfhealing.md)
+ 
+Kubernetes terbukti mampu memulihkan Pod yang crash secara otomatis tanpa intervensi manual. Saat salah satu Pod dihapus secara paksa, Kubernetes langsung membuat Pod pengganti dalam waktu **± 4 detik** — jauh lebih cepat dibandingkan cara lama yang membutuhkan menit hingga jam.
+ 
+| Aspek | Cara Lama | Dengan Kubernetes |
+|-------|-----------|-------------------|
+| Deteksi masalah | Manual / menunggu laporan | Otomatis dalam hitungan detik |
+| Waktu recovery | Menit hingga jam | **± 4 detik** |
+| Intervensi manusia | Wajib | Tidak diperlukan |
+ 
+### Insiden 2 — Rolling Update Tanpa Downtime (Tugas 4)
+ 
+> 📄 Dokumentasi lengkap: [docs/insiden-2-rolling-update.md](docs/insiden-2-rolling-update.md)
+ 
+Pembaruan versi aplikasi dilakukan tanpa satu pun request yang gagal. Dengan konfigurasi `maxUnavailable: 0`, Kubernetes memastikan selalu ada Pod aktif selama proses update berlangsung.
+ 
+### Insiden 3 — Rollback Cepat & Isolasi Namespace (Tugas 5 & 6)
+ 
+> 📄 Dokumentasi lengkap: [docs/insiden-3-rollback.md](docs/insiden-3-rollback.md)
+ 
+Rollback ke versi sebelumnya selesai dalam **< 60 detik** hanya dengan satu perintah `kubectl rollout undo`. Pengujian isolasi namespace juga membuktikan bahwa gangguan di `taskflow-dev` sama sekali tidak mempengaruhi `taskflow-prod`.
+ 
+---
+ 
+## 🔄 CI/CD Pipeline
+ 
+> 📄 Dokumentasi lengkap: [docs/cicd-ke-kubernetes.md](docs/cicd-ke-kubernetes.md)
+ 
+Pipeline GitHub Actions dikonfigurasi untuk melakukan auto-deploy ke Kubernetes setiap kali ada push ke branch `main`. Alur kerja: **push kode → job build → job deploy → Kubernetes update otomatis**.
+ 
