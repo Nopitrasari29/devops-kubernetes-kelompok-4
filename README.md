@@ -1,6 +1,22 @@
 # TaskFlow — Kubernetes & Microservices (Kelompok 4)
 
-Repositori ini berisi berkas konfigurasi Kubernetes dan skrip deployment untuk memindahkan aplikasi **TaskFlow Inc.** ke cluster Kubernetes (Minikube). Langkah ini diambil untuk mengatasi masalah downtime aplikasi, pembaruan (rolling update) lambat, dan proses rollback manual yang memakan waktu lama.
+Aplikasi **TaskFlow Inc.** sebelumnya dijalankan secara manual di satu server tunggal yang rentan terhadap crash, memiliki waktu downtime saat pembaruan (deployment), serta proses rollback yang lambat. Proyek ini memindahkan arsitektur aplikasi TaskFlow ke dalam orkestrasi **Kubernetes (Minikube)** untuk membuktikan keandalan sistem terhadap tiga insiden produksi utama: downtime tak terdeteksi, jeda pembaruan versi baru, dan lambatnya pemulihan saat terjadi bug kritis.
+
+---
+
+## 👥 Anggota Kelompok & Pembagian Tugas
+
+Berikut adalah daftar anggota Kelompok 4 beserta pembagian tanggung jawab masing-masing dalam pengerjaan modul Kubernetes ini:
+
+| Nama | NRP | Peran / Jobdesk |
+| :--- | :---: | :--- |
+| **Aswalia Novitriasari** (Nopi) | 5027231012 | **Tugas 1 & 2 (Foundation)**: Membuat file manifes namespace (`dev` & `prod`), `deployment.yaml` & `service.yaml`, melakukan deploy awal, serta menyusun skrip otomatisasi `deploy.sh`. |
+| **Riskiyatul Nur Oktarani** (Yatun) | 5027231013 | **Tugas 6 (Namespace Isolation)**: Melakukan pengujian isolasi namespace `dev` & `prod` serta mendokumentasikan hasilnya di berkas `docs/insiden-3-rollback.md`. |
+| **Rafika Az Zahra Kusumastuti** (Pika) | 5027231050 | **Tugas 3 (Self-Healing)**: Mensimulasikan pemulihan otomatis saat Pod crash/dihapus (Insiden 1) dan mendokumentasikannya di berkas `docs/insiden-1-selfhealing.md`. |
+| **Nisrina Atiqah Dwiputri Ridzki** (Tika) | 5027231075 | **Tugas 4 (Rolling Update)**: Mensimulasikan pembaruan versi aplikasi tanpa downtime (Insiden 2) dan mendokumentasikannya di berkas `docs/insiden-2-rolling-update.md`. |
+| **Hasan** | 5027231073 | **Tugas 5 (Rollback)**: Melakukan pengujian rollback cepat menggunakan perintah `rollout undo` (Insiden 3) dan mendokumentasikannya di berkas `docs/insiden-3-rollback.md`. |
+| **Farand Febriansyah** | 5027231084 | **Tugas 7 (CI/CD Setup)**: Mengonfigurasi kebutuhan teknis GitHub Actions, ekspor kubeconfig Minikube ke base64 GitHub Secret, dan menambahkan job deploy ke `.github/workflows/ci.yml`. |
+| **M. Abhinaya Al Faruqi** | 50272231011 | **Tugas 7 (Testing & Docs)**: Menguji pipeline end-to-end (push kode → auto-update Kubernetes), finalisasi `README.md`, serta mendokumentasikan analisis di `docs/cicd-ke-kubernetes.md`. |
 
 ---
 
@@ -8,21 +24,21 @@ Repositori ini berisi berkas konfigurasi Kubernetes dan skrip deployment untuk m
 
 ```text
 devops-kubernetes-kelompok-4/
-├── README.md                        ← Panduan ini (Cara menjalankan & verifikasi)
+├── README.md                        ← Panduan ini (Anggota kelompok, Cara menjalankan & verifikasi)
 ├── .github/
 │   └── workflows/
-│       └── ci.yml                   ← Pipeline CI/CD Auto-Deploy (Tugas Farand & Abhinaya)
+│       └── ci.yml                   ← Pipeline CI/CD Auto-Deploy
 ├── kubernetes/
-│   ├── namespace-dev.yaml           ← Konfigurasi Namespace Development (Tugas Nopi)
-│   ├── namespace-prod.yaml          ← Konfigurasi Namespace Production (Tugas Nopi)
-│   ├── deployment.yaml              ← Konfigurasi Deployment Aplikasi (Tugas Nopi)
-│   └── service.yaml                 ← Konfigurasi Service NodePort (Tugas Nopi)
-├── deploy.sh                        ← Skrip setup otomatis sekali jalan (Tugas Nopi)
+│   ├── namespace-dev.yaml           ← Konfigurasi Namespace Development
+│   ├── namespace-prod.yaml          ← Konfigurasi Namespace Production
+│   ├── deployment.yaml              ← Konfigurasi Deployment Aplikasi
+│   └── service.yaml                 ← Konfigurasi Service NodePort
+├── deploy.sh                        ← Skrip setup otomatis sekali jalan
 └── docs/
-    ├── insiden-1-selfhealing.md     ← Dokumentasi Pengujian Self-Healing (Tugas Pika)
-    ├── insiden-2-rolling-update.md  ← Dokumentasi Pengujian Rolling Update (Tugas Tika)
-    ├── insiden-3-rollback.md        ← Dokumentasi Pengujian Rollback & Isolasi (Tugas Hasan & Yatun)
-    └── cicd-ke-kubernetes.md        ← Dokumentasi Pipeline CI/CD ke Kubernetes (Tugas Abhinaya)
+    ├── insiden-1-selfhealing.md     ← Dokumentasi Pengujian Self-Healing
+    ├── insiden-2-rolling-update.md  ← Dokumentasi Pengujian Rolling Update
+    ├── insiden-3-rollback.md        ← Dokumentasi Pengujian Rollback & Isolasi Namespace
+    └── cicd-ke-kubernetes.md        ← Dokumentasi Pipeline CI/CD ke Kubernetes
 ```
 
 ---
@@ -30,9 +46,9 @@ devops-kubernetes-kelompok-4/
 ## 🛠️ Prasyarat (Prerequisites)
 
 Sebelum menjalankan deployment, pastikan Anda telah menginstal tools berikut di komputer lokal Anda:
-1. **Docker Desktop** (Pastikan sudah aktif)
+1. **Docker Desktop** (Pastikan statusnya aktif)
 2. **Minikube** ([Instalasi Minikube](https://minikube.sigs.k8s.io/docs/start/))
-3. **Kubectl** (CLI untuk mengelola Kubernetes)
+3. **Kubectl** (CLI untuk berinteraksi dengan cluster Kubernetes)
 
 ---
 
