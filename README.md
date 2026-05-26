@@ -136,11 +136,11 @@ Akses aplikasi melalui browser atau `curl` di alamat:
  
 Berikut adalah hasil pengujian ketiga insiden produksi utama yang dibuktikan dengan Kubernetes:
  
-### Insiden 1 — Self-Healing (Tugas 3)
+### Insiden 1: Self-Healing (Tugas 3)
  
 > 📄 Dokumentasi lengkap: [docs/insiden-1-selfhealing.md](docs/insiden-1-selfhealing.md)
  
-Kubernetes terbukti mampu memulihkan Pod yang crash secara otomatis tanpa intervensi manual. Saat salah satu Pod dihapus secara paksa, Kubernetes langsung membuat Pod pengganti dalam waktu **± 4 detik** — jauh lebih cepat dibandingkan cara lama yang membutuhkan menit hingga jam.
+Kubernetes terbukti mampu memulihkan Pod yang crash secara otomatis tanpa intervensi manual. Saat salah satu Pod dihapus secara paksa, Kubernetes langsung membuat Pod pengganti dalam waktu **± 4 detik**, jauh lebih cepat dibandingkan cara lama yang membutuhkan menit hingga jam.
  
 | Aspek | Cara Lama | Dengan Kubernetes |
 |-------|-----------|-------------------|
@@ -148,13 +148,13 @@ Kubernetes terbukti mampu memulihkan Pod yang crash secara otomatis tanpa interv
 | Waktu recovery | Menit hingga jam | **± 4 detik** |
 | Intervensi manusia | Wajib | Tidak diperlukan |
  
-### Insiden 2 — Rolling Update Tanpa Downtime (Tugas 4)
+### Insiden 2: Rolling Update Tanpa Downtime (Tugas 4)
  
 > 📄 Dokumentasi lengkap: [docs/insiden-2-rolling-update.md](docs/insiden-2-rolling-update.md)
  
 Pembaruan versi aplikasi dilakukan tanpa satu pun request yang gagal. Dengan konfigurasi `maxUnavailable: 0`, Kubernetes memastikan selalu ada Pod aktif selama proses update berlangsung.
  
-### Insiden 3 — Rollback Cepat & Isolasi Namespace (Tugas 5 & 6)
+### Insiden 3: Rollback Cepat & Isolasi Namespace (Tugas 5 & 6)
  
 > 📄 Dokumentasi lengkap: [docs/insiden-3-rollback.md](docs/insiden-3-rollback.md)
  
