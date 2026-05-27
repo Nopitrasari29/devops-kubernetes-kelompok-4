@@ -22,7 +22,7 @@ spec:
         - name: taskflow-api
           image: hashicorp/http-echo:latest
           args:
-            - "-text=Halo dari TaskFlow v1!"
+            - "-text=Halo dari TaskFlow v2! Fitur baru!"
             - "-listen=:8080"
           ports:
             - containerPort: 8080
