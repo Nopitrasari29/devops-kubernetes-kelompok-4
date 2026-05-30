@@ -162,9 +162,39 @@ Rollback ke versi sebelumnya selesai dalam **< 60 detik** hanya dengan satu peri
  
 ---
  
-## 🔄 CI/CD Pipeline
+## 🔄 CI/CD Pipeline (Tugas 7)
  
 > 📄 Dokumentasi lengkap: [docs/cicd-ke-kubernetes.md](docs/cicd-ke-kubernetes.md)
  
-Pipeline GitHub Actions dikonfigurasi untuk melakukan auto-deploy ke Kubernetes setiap kali ada push ke branch `main`. Alur kerja: **push kode → job build → job deploy → Kubernetes update otomatis**.
- 
+Pipeline GitHub Actions melakukan **auto-deploy ke Kubernetes** setiap kali ada push ke branch `main`. Workflow memiliki 3 jobs: **VALIDATE** → **DEPLOY** → **NOTIFY**.
+
+### Setup GitHub Actions
+
+1. **Export kubeconfig ke base64:**
+   ```bash
+   ./scripts/export-kubeconfig.sh
+   ```
+
+2. **Add GitHub Secret `KUBECONFIG_BASE64`:**
+   - Go to GitHub Settings → Secrets and variables → Actions
+   - New repository secret
+   - Name: `KUBECONFIG_BASE64`
+   - Value: Paste base64 dari script output
+
+3. **Verifikasi deployment:**
+   ```bash
+   ./scripts/verify-deployment.sh
+   ```
+
+### Helper Scripts
+
+- **`scripts/export-kubeconfig.sh`** - Export kubeconfig ke base64
+- **`scripts/verify-deployment.sh`** - Verify deployment status
+
+### Troubleshooting
+
+| Issue | Solusi |
+|-------|--------|
+| Secret not found | Verifikasi `KUBECONFIG_BASE64` di GitHub Settings |
+| Cannot connect | `minikube stop && minikube start`, re-export kubeconfig |
+| Deployment timeout | Check logs: `kubectl logs deployment/taskflow-api -n taskflow-prod` |

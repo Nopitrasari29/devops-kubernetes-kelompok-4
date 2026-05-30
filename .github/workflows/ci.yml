@@ -1,0 +1,274 @@
+name: CI/CD - Deploy to Kubernetes
+
+# Trigger workflow pada event tertentu
+on:
+  push:
+    branches:
+      - main                          # Trigger saat push ke branch main
+  pull_request:
+    branches:
+      - main                          # Trigger saat PR ke branch main
+
+# Environment variables
+env:
+  NAMESPACE_DEV: taskflow-dev         # Development namespace
+  NAMESPACE_PROD: taskflow-prod       # Production namespace
+  DEPLOYMENT_NAME: taskflow-api       # Nama deployment
+  KUBECONFIG_PATH: /tmp/kubeconfig    # Path temporary untuk kubeconfig
+
+# Jobs yang akan dijalankan
+jobs:
+  # ============================================================
+  # JOB 1: Validasi & Setup
+  # ============================================================
+  validate:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0              # Fetch semua history untuk CI/CD analysis
+
+      - name: Validate Kubernetes manifests
+        run: |
+          echo "🔍 Validating Kubernetes manifests..."
+          
+          # Cek ketersediaan file manifests
+          if [ ! -f kubernetes/namespace-dev.yaml ]; then
+            echo "❌ Error: kubernetes/namespace-dev.yaml not found"
+            exit 1
+          fi
+          
+          if [ ! -f kubernetes/namespace-prod.yaml ]; then
+            echo "❌ Error: kubernetes/namespace-prod.yaml not found"
+            exit 1
+          fi
+          
+          if [ ! -f kubernetes/deployment.yaml ]; then
+            echo "❌ Error: kubernetes/deployment.yaml not found"
+            exit 1
+          fi
+          
+          if [ ! -f kubernetes/service.yaml ]; then
+            echo "❌ Error: kubernetes/service.yaml not found"
+            exit 1
+          fi
+          
+          echo "✅ All Kubernetes manifests found"
+
+      - name: Display Kubernetes configuration
+        run: |
+          echo "📋 Kubernetes Configuration Summary:"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Development Namespace: ${{ env.NAMESPACE_DEV }}"
+          echo "Production Namespace: ${{ env.NAMESPACE_PROD }}"
+          echo "Deployment Name: ${{ env.DEPLOYMENT_NAME }}"
+          echo ""
+          echo "📄 Deployment Manifest:"
+          cat kubernetes/deployment.yaml
+          echo ""
+          echo "📄 Service Manifest:"
+          cat kubernetes/service.yaml
+
+  # ============================================================
+  # JOB 2: Setup Kubeconfig & Deploy ke Kubernetes
+  # ============================================================
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    needs: validate                   # Tunggu job 'validate' selesai
+    
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # Step 2: Decode kubeconfig dari GitHub Secret
+      - name: Setup kubeconfig
+        run: |
+          echo "🔐 Setting up kubeconfig from GitHub Secret..."
+          
+          # Decode base64 secret ke file kubeconfig
+          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 -d > ${{ env.KUBECONFIG_PATH }}
+          
+          # Set permission file
+          chmod 600 ${{ env.KUBECONFIG_PATH }}
+          
+          # Verifikasi kubeconfig valid
+          if [ ! -f ${{ env.KUBECONFIG_PATH }} ]; then
+            echo "❌ Error: Failed to create kubeconfig file"
+            exit 1
+          fi
+          
+          echo "✅ Kubeconfig file created successfully"
+
+      # Step 3: Setup kubectl
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'          # Version kubectl yang digunakan
+
+      # Step 4: Test koneksi ke Kubernetes cluster
+      - name: Test Kubernetes connection
+        env:
+          KUBECONFIG: ${{ env.KUBECONFIG_PATH }}
+        run: |
+          echo "🔗 Testing connection to Kubernetes cluster..."
+          
+          # Cek cluster info
+          kubectl cluster-info
+          
+          # Cek nodes
+          echo ""
+          echo "📊 Cluster Nodes:"
+          kubectl get nodes
+          
+          # Cek context
+          echo ""
+          echo "🎯 Current Context:"
+          kubectl config current-context
+          
+          echo "✅ Connection to Kubernetes cluster successful"
+
+      # Step 5: Create namespaces
+      - name: Create namespaces
+        env:
+          KUBECONFIG: ${{ env.KUBECONFIG_PATH }}
+        run: |
+          echo "📦 Creating Kubernetes namespaces..."
+          
+          # Apply namespace manifests
+          kubectl apply -f kubernetes/namespace-dev.yaml
+          kubectl apply -f kubernetes/namespace-prod.yaml
+          
+          # Verifikasi namespaces dibuat
+          echo ""
+          echo "✅ Namespaces created:"
+          kubectl get namespaces
+          
+          # Tunggu namespace siap
+          sleep 2
+
+      # Step 6: Deploy ke Kubernetes (prod namespace)
+      - name: Deploy to Kubernetes (Production)
+        env:
+          KUBECONFIG: ${{ env.KUBECONFIG_PATH }}
+        run: |
+          echo "🚀 Deploying to Kubernetes (Production namespace)..."
+          
+          # Apply deployment manifest
+          kubectl apply -f kubernetes/deployment.yaml -n ${{ env.NAMESPACE_PROD }}
+          
+          # Apply service manifest
+          kubectl apply -f kubernetes/service.yaml -n ${{ env.NAMESPACE_PROD }}
+          
+          echo "✅ Deployment manifests applied"
+
+      # Step 7: Wait untuk deployment siap
+      - name: Wait for deployment to be ready
+        env:
+          KUBECONFIG: ${{ env.KUBECONFIG_PATH }}
+        run: |
+          echo "⏳ Waiting for deployment to be ready (max 5 minutes)..."
+          
+          # Tunggu deployment ready
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} \
+            -n ${{ env.NAMESPACE_PROD }} \
+            --timeout=5m
+          
+          echo "✅ Deployment is ready"
+          
+          # Show deployment info
+          echo ""
+          echo "📋 Deployment Information:"
+          kubectl get deployment -n ${{ env.NAMESPACE_PROD }}
+          
+          echo ""
+          echo "📋 Pod Status:"
+          kubectl get pods -n ${{ env.NAMESPACE_PROD }}
+
+      # Step 8: Verifikasi service
+      - name: Verify service
+        env:
+          KUBECONFIG: ${{ env.KUBECONFIG_PATH }}
+        run: |
+          echo "🔍 Verifying service..."
+          
+          # Get service info
+          kubectl get service -n ${{ env.NAMESPACE_PROD }}
+          
+          # Get service details
+          echo ""
+          echo "📋 Service Details:"
+          kubectl describe service/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE_PROD }}
+          
+          echo "✅ Service verified"
+
+      # Step 9: Display deployment summary
+      - name: Display deployment summary
+        env:
+          KUBECONFIG: ${{ env.KUBECONFIG_PATH }}
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ DEPLOYMENT SUCCESSFUL"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "📊 Cluster Status:"
+          kubectl get all -n ${{ env.NAMESPACE_PROD }}
+          echo ""
+          echo "🎯 Deployment Details:"
+          kubectl describe deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE_PROD }} | head -20
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      # Step 10: Cleanup (optional - tapi recommended untuk security)
+      - name: Cleanup sensitive files
+        if: always()
+        run: |
+          echo "🧹 Cleaning up sensitive files..."
+          
+          # Hapus kubeconfig file (untuk security, jangan simpan di artifact)
+          rm -f ${{ env.KUBECONFIG_PATH }}
+          
+          echo "✅ Cleanup completed"
+
+  # ============================================================
+  # JOB 3: Notification (optional)
+  # ============================================================
+  notify:
+    name: Send notification
+    runs-on: ubuntu-latest
+    needs: [validate, deploy]
+    if: always()                      # Run even if previous jobs failed
+    
+    steps:
+      - name: Determine job status
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "✅ CI/CD Pipeline completed successfully!"
+            exit 0
+          else
+            echo "❌ CI/CD Pipeline failed. Check logs for details."
+            exit 1
+          fi
+
+# ============================================================
+# WORKFLOW TRIGGERS & EVENTS
+# ============================================================
+# 
+# Workflow ini akan trigger pada:
+# 1. Push ke branch 'main'
+# 2. Pull Request ke branch 'main'
+#
+# Workflow ini akan:
+# 1. Validate Kubernetes manifests
+# 2. Setup kubeconfig dari GitHub Secret
+# 3. Deploy ke Kubernetes cluster
+# 4. Verify deployment status
+# 5. Send notifications
+#
+# ============================================================
