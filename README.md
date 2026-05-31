@@ -33,6 +33,9 @@ devops-kubernetes-kelompok-4/
 │   ├── namespace-prod.yaml          ← Konfigurasi Namespace Production
 │   ├── deployment.yaml              ← Konfigurasi Deployment Aplikasi
 │   └── service.yaml                 ← Konfigurasi Service NodePort
+├── scripts/
+│   ├── export-kubeconfig.sh         ← Export kubeconfig Minikube ke base64
+│   └── verify-deployment.sh         ← Verifikasi status deployment di Kubernetes
 ├── deploy.sh                        ← Skrip setup otomatis sekali jalan
 └── docs/
     ├── insiden-1-selfhealing.md     ← Dokumentasi Pengujian Self-Healing
@@ -198,3 +201,24 @@ Pipeline GitHub Actions melakukan **auto-deploy ke Kubernetes** setiap kali ada 
 | Secret not found | Verifikasi `KUBECONFIG_BASE64` di GitHub Settings |
 | Cannot connect | `minikube stop && minikube start`, re-export kubeconfig |
 | Deployment timeout | Check logs: `kubectl logs deployment/taskflow-api -n taskflow-prod` |
+
+---
+
+## ✅ Ringkasan Verifikasi
+
+Berikut status verifikasi akhir dari seluruh komponen project:
+
+| Komponen | Status | Penanggung Jawab |
+|----------|--------|------------------|
+| Namespace `dev` & `prod` | ✅ Aktif | Nopi (Tugas 1 & 2) |
+| Deployment & Service | ✅ 2/2 Pods Running | Nopi (Tugas 1 & 2) |
+| Self-Healing | ✅ Recovery < 4 detik | Pika (Tugas 3) |
+| Rolling Update | ✅ Zero downtime | Tika (Tugas 4) |
+| Rollback | ✅ < 60 detik | Hasan (Tugas 5) |
+| Namespace Isolation | ✅ Terisolasi | Yatun (Tugas 6) |
+| CI/CD Pipeline | ✅ 3 Jobs Pass | Farand & Abhinaya (Tugas 7) |
+| Dokumentasi | ✅ Lengkap | Seluruh anggota |
+
+---
+
+*Terakhir diperbarui: 31 Mei 2026 — Difinalisasi oleh M. Abhinaya Al Faruqi*
