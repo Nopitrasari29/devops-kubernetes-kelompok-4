@@ -579,7 +579,7 @@ Waiting for deployment "taskflow-api" rollout to finish: 1 of 2 updated replicas
 deployment "taskflow-api" successfully rolled out
 ✅ Selesai! Akses di: http://192.168.49.2:30080
 ```
-![output deploy.sh](./docs/output-deploy-sh.png)
+![output deploy.sh](images/output-deploy-sh.png)
 
 **Hasil:** ✅ **PASS** — Deployment berhasil, kedua replicas tersedia.
 
@@ -607,7 +607,7 @@ deployment.apps/taskflow-api   2/2     2            2           45s
 NAME                                      DESIRED   CURRENT   READY   AGE
 replicaset.apps/taskflow-api-84ff8849b7   2         2         2       45s
 ```
-![output get all](./docs/output-get-all.png)
+![output get all](images/output-get-all.png)
 
 **Verifikasi Detail:**
 
@@ -640,7 +640,7 @@ kube-system       Active   20m
 taskflow-dev      Active   47s
 taskflow-prod     Active   47s
 ```
-![output get namespaces](./docs/output-get-namespaces.png)
+![output get namespaces](images/output-get-namespaces.png)
 
 **Hasil:** ✅ **PASS** — Kedua namespace (`taskflow-dev` dan `taskflow-prod`) berhasil dibuat dan aktif.
 
@@ -657,7 +657,7 @@ minikube ssh "curl -s http://10.244.0.3:8080"
 ```
 Halo dari TaskFlow v2! Fitur baru!
 ```
-![output curl](./docs/output-curl.png)
+![output curl](images/output-curl.png)
 
 **Hasil:** ✅ **PASS** — Aplikasi merespons dengan benar sesuai konfigurasi args di `deployment.yaml`.
 
@@ -680,7 +680,7 @@ Halo dari TaskFlow v2! Fitur baru!
 - ✅ Job **DEPLOY**: Berhasil — kubeconfig decoded, kubectl installed, manifests applied
 - ✅ Job **NOTIFY**: Berhasil — pipeline status: success
 
-![output github actions](./docs/output-github-actions.png)
+![output github actions](images/output-github-actions.png)
 
 > **Catatan:** Karena GitHub Actions runner berjalan di cloud (bukan di jaringan lokal), koneksi langsung ke Minikube cluster lokal tidak dimungkinkan. Oleh karena itu, Job DEPLOY menggunakan **Bypass Mode** yang mensimulasikan output deployment. Deployment aktual dilakukan secara lokal menggunakan `deploy.sh`.
 

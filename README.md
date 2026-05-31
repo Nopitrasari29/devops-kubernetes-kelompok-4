@@ -38,6 +38,12 @@ devops-kubernetes-kelompok-4/
 │   └── verify-deployment.sh         ← Verifikasi status deployment di Kubernetes
 ├── deploy.sh                        ← Skrip setup otomatis sekali jalan
 └── docs/
+    ├── images/
+    │   ├── output-deploy-sh.png     ← Screenshot output deploy.sh
+    │   ├── output-get-all.png       ← Screenshot output get all
+    │   ├── output-get-namespaces.png← Screenshot output get namespaces
+    │   ├── output-curl.png          ← Screenshot output curl
+    │   └── output-github-actions.png← Screenshot output github actions
     ├── insiden-1-selfhealing.md     ← Dokumentasi Pengujian Self-Healing
     ├── insiden-2-rolling-update.md  ← Dokumentasi Pengujian Rolling Update
     ├── insiden-3-rollback.md        ← Dokumentasi Pengujian Rollback & Isolasi Namespace
